@@ -42,6 +42,16 @@ Y_train= []
 for i in range(60,1258):
     X_train.append(training_set_scaled[i-60:i, 0])
     Y_train.append(training_set_scaled[i,0])
+#X_train and Y_train are list and we need to make them numpy array, so that they can be accepted by our future RNN
+    
+X_train, Y_train = np.array(X_train), np.array(Y_train)
+
+
+#Reshaping the Data
+#adding more dimensionality to the data structure that we made, the diamond is unit, the number of predictors that we can use to predict what we want! (if you want)
+
+#anytime you want to add  a dimension inot numpy array, always use reshape function, go tu keras documentation to see what the new shape should be 
+X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
 
 
 
