@@ -57,8 +57,31 @@ X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
 
 #Part 2 - Building the RNN
 
+#buil the whole architecture of neural network, we make stacked LSTM with some drop out regularization to prevent overfitting
 
+#importing keras libraries and packages
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.layers import LSTM
+from keras.layers import Dropout
 
+#Initialize the RNN
+#Thats the first step, we will build the initiation of our sequential layers, then we will use pytorch
+
+#creating a sequence of layers
+regressor = Sequential()
+
+#now we can add different layers to make it a powerful stacked LSTM
+
+# Adding the first LSTM layer and some drop out regularization
+#3 arguments for LSTM : 1- unit (number of LSTM cells you want to have in LSTM layer) 2-return sequences = True, because we are building staacked LSTM, when you add another LSTM on the initial one it should be True, at final layer when you are done you can set it to False or but its default 3- input shape, exact shape of input X_train that we created before, but only the last two number we enter
+
+regressor.add(LSTM(units=50, return_sequences = True, input_shape=(X_train.shape[1], 1) ))
+
+#dropout, rate of the neurons that you want to drop and ignor
+regressor.add(Dropout(0.2))
+
+#we will make 4 layers of LSTM and some drop out to each of them
 
 
 
