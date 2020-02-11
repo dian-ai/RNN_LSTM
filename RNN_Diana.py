@@ -83,13 +83,104 @@ regressor.add(Dropout(0.2))
 
 #we will make 4 layers of LSTM and some drop out to each of them
 
+#Adding a 2nd layer LSTM and some Dropout regularization
+#we can still use the syntax for previous LSTM but we need to change the input shape, as it is the 2nd LSTM layer we dont need to specify input layer anymore
+
+#we keep the same number of neurons 50 in 2nd layer too
+regressor.add(LSTM(units=50, return_sequences = True))
+regressor.add(Dropout(0.2))
+
+
+
+#Adding a 3rd LSTM layer and some Dropout regularization
+
+regressor.add(LSTM(units=50, return_sequences = True))
+regressor.add(Dropout(0.2))
 
 
 
 
+#Adding 4rth LSTM layer and some Dropout regularization
+#This is the last LSTM layer and after that comes output layer with poutput dimensions, so we are not returning any sequences
+
+regressor.add(LSTM(units=50, return_sequences = False))
+regressor.add(Dropout(0.2))
+
+
+
+#Adding output layer
+#to add final output layer of our NN, we need to use the class Dense, because we are adding a classic fully connected layer not a LSTM layer. then choose a number of neurons there needs to be in this layer, since we are predicting the price, the output has only one dimension
+
+regressor.add(Dense(units=1))
+
+#there are still 2 steps left in this part, 1:compiling the RNN with a powerfull optimizer and the right loss(mean squared error)  2: fit this NN to our training set (X_train,Y_train)
+
+#Compiling the RNN
+regressor.compile(optimizer='adam', loss= 'mean_squared_error')
+
+
+#Fitting the RNN to the training set
+
+
+regressor.fit(X_train, Y_train, epochs=100, batch_size=32)
 
 
 #Part3 - Making the predictions and visualising the results
 
+#step1: Getting real google stockprice of 2017
+
+dataset_test = pd.read_csv('Google_Stock_Price_Test.csv')
+real_stock_price = dataset_test.iloc[:, 1:2].values
+
+#step2: Getting predicted google stockprice of  2017
+
+#we trained our model to be able to predict the stockprice at T+1, based on the 60 previous stock prices, therefore to predict each stock price of each working day of jan 2017, well need 60 previous stock prices.
+#in order to get at each working day of jan 2017, 60 previous stock prices, we will need both the training set and test set. some of them will come from Dec 2016 and some data will be provided by jan 2017. so we need to make concatanation of these two data
+# how to make this concatination happen. we have two original data frames dataset_train and dataset_test, 
+#for vertical concatination we use axes=0, horizental axis = 1
 
 
+dataset_total = pd.concat((dataset_train['Open'],dataset_test['Open']),axis=0)
+
+inputs= dataset_total[len(dataset_total)-len(dataset_test) -60 : ].values
+#.values is to make it a numpy aarry
+#to have a correct shape that we need in numpy array we use iloc or reshape
+
+inputs = inputs.reshape(-1,1)
+
+#3D format that is expected by NN, before that scale our inputs
+
+inputs = sc.transform(inputs)
+
+X_test= []
+
+
+for i in range(60,80):
+    X_test.append(inputs[i-60:i, 0])
+    
+X_test = np.array(X_test)
+
+#3D format
+X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
+
+predicted_stock_price = regressor.predict(X_test)
+
+#inverse the scaling of our predictions because our regressor was trained to predict the scaled value of stock prices 
+
+predicted_stock_price = sc.inverse_transform(predicted_stock_price)
+
+
+
+
+#step3: visualizing the result
+
+plt.plot(real_stock_price, color='red', label='Real Google Stock Price')
+
+plt.plot(predicted_stock_price, color='blue', label='Predicted Google Stock Price')
+
+plt.title('Google Stock Price Prediction')
+
+plt.xlabel('Time')
+plt.ylabel('Price')
+plt.legend()
+plt.show()
